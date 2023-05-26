@@ -1,0 +1,7 @@
+out
+node_modules
+coverage
+.vscode-test/
+.vsix
+dist
+.eslintcache

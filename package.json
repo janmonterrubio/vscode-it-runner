@@ -1,0 +1,73 @@
+{
+  "name": "it-runner",
+  "displayName": "it-runner",
+  "description": "Runs tests written with the it framework",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.78.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "it-runner.runItFile",
+        "title": "Run it tests in File"
+      },
+      {
+        "command": "it-runner.debugItFile",
+        "title": "Debug it tests in File"
+      },
+      {
+        "command": "it-runner.runIt",
+        "title": "Run IT"
+      },
+      {
+        "command": "it-runner.debugIt",
+        "title": "Debug IT"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "it-runner.runIt",
+          "group": "04_it"
+        },
+        {
+          "command": "it-runner.debugIt",
+          "group": "04_it"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.78.0",
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.31.0",
+    "@typescript-eslint/parser": "^5.31.0",
+    "eslint": "^8.20.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.0.0",
+    "typescript": "^4.7.4",
+    "@vscode/test-electron": "^2.1.5"
+  },
+  "dependencies": {
+    "acorn": "^8.8.2",
+    "acorn-walk": "^8.2.0"
+  }
+}
