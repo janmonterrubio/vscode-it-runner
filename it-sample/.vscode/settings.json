@@ -1,0 +1,5 @@
+{
+    "itrunner.testEnv": {
+        "NODE_ENV": "test"
+    }
+}

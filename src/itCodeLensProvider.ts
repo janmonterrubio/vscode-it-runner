@@ -9,9 +9,16 @@ import { TestCollector, TestNode, parse, walkTree } from "./itTestParser";
 
 export type CodeLensOption = "run" | "debug";
 
-export class MyCodeLensProvider implements CodeLensProvider {
+export class ItRunnerCodeLensProvider implements CodeLensProvider {
   async provideCodeLenses(document: TextDocument): Promise<CodeLens[]> {
     let topOfDocument = new Range(0, 0, 0, 0);
+
+    const foundTests = walkTree(parse(document.getText()));
+
+    // no tests
+    if (foundTests.children.length < 1) {
+      return [];
+    }
 
     let runFileCommand: Command = {
       command: "it-runner.runItFile",
@@ -25,9 +32,7 @@ export class MyCodeLensProvider implements CodeLensProvider {
     };
     let debugFileCommandLens = new CodeLens(topOfDocument, debugFileCommand);
 
-    const foundTests = walkTree(parse(document.getText()));
     const testCommands = this.getTestCommands(foundTests);
-
     return [runFileCommandLens, debugFileCommandLens, ...testCommands];
   }
 

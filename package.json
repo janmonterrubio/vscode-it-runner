@@ -2,7 +2,7 @@
   "name": "it-runner",
   "displayName": "it-runner",
   "description": "Runs tests written with the it framework",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.78.0"
   },
@@ -14,6 +14,17 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "it runner",
+      "properties": {
+        "itrunner.testEnv": {
+          "type": "object",
+          "description": "A set of environment variables to set on the terminal when invoking it.",
+          "default": {},
+          "scope": "window"
+        }
+      }
+    },
     "commands": [
       {
         "command": "it-runner.runItFile",
@@ -68,6 +79,7 @@
   },
   "dependencies": {
     "acorn": "^8.8.2",
-    "acorn-walk": "^8.2.0"
+    "acorn-walk": "^8.2.0",
+    "path": "^0.12.7"
   }
 }

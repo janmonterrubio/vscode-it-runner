@@ -1,6 +1,9 @@
 import * as vscode from "vscode";
+import * as path from "path";
 
-// heavily copies the jest-runner extension
+import { ItRunnerConfig } from "./itRunnerConfig";
+
+// heavily copies the vscode-jest-runner extension
 
 interface DebugCommand {
   documentUri: vscode.Uri;
@@ -10,18 +13,8 @@ interface DebugCommand {
 export class ItRunner {
   private terminal: vscode.Terminal | null;
 
-  // TODO figure out why it closes the editor (maybe it the save part)?
-
-  // support for running in a native external terminal
-  // force runTerminalCommand to push to a queue and run in a native external
-  // terminal after all commands been pushed
-  private openNativeTerminal: boolean;
-  private commands: string[] = [];
-
-  constructor() {
+  constructor(private readonly config: ItRunnerConfig) {
     this.setup();
-    // TODO
-    this.openNativeTerminal = false;
     this.terminal = null;
   }
 
@@ -36,17 +29,9 @@ export class ItRunner {
     const filePath = editor.document.fileName;
     const command = this.buildItCommand(filePath, undefined);
 
-    //   this.previousCommand = command;
-
-    const cwdPath = vscode.workspace.getWorkspaceFolder(editor.document.uri)
-      ?.uri.fsPath;
-
-    // TODO fix cwdPath retrieval
-    await this.goToCwd(cwdPath ?? "");
+    await this.goToCwd();
+    await this.setEnv();
     await this.runTerminalCommand(command);
-
-    // TODO what is this for
-    //await this.runExternalNativeTerminalCommand(this.commands);
   }
 
   public async debugCurrentFile(): Promise<void> {
@@ -58,16 +43,9 @@ export class ItRunner {
     await editor.document.save();
 
     const filePath = editor.document.fileName;
+    const debugConfig = this.getDebugConfig(filePath, undefined);
 
-    //   this.previousCommand = command;
-
-    const cwdPath = vscode.workspace.getWorkspaceFolder(editor.document.uri)
-      ?.uri.fsPath;
-
-    const debugConfig = this.getDebugConfig(cwdPath ?? "", filePath, undefined);
-
-    // TODO fix cwdPath retrieval
-    await this.goToCwd(cwdPath ?? "");
+    await this.goToCwd();
     await this.executeDebugCommand({
       config: debugConfig,
       documentUri: editor.document.uri,
@@ -91,12 +69,8 @@ export class ItRunner {
     const testName = currentTestName;
     const command = this.buildItCommand(filePath, testName);
 
-    //   this.previousCommand = command;
-
-    const cwdPath = vscode.workspace.getWorkspaceFolder(editor.document.uri)
-      ?.uri.fsPath;
-
-    await this.goToCwd(cwdPath ?? "");
+    await this.goToCwd();
+    await this.setEnv();
     await this.runTerminalCommand(command);
   }
 
@@ -113,60 +87,57 @@ export class ItRunner {
     await editor.document.save();
 
     const filePath = editor.document.fileName;
-    const cwdPath = vscode.workspace.getWorkspaceFolder(editor.document.uri)
-      ?.uri.fsPath;
-    const debugConfig = this.getDebugConfig(
-      cwdPath ?? "",
-      filePath,
-      currentTestName
-    );
+    const debugConfig = this.getDebugConfig(filePath, currentTestName);
 
-    // TODO fix cwdPath retrieval
-    await this.goToCwd(cwdPath ?? "");
+    await this.goToCwd();
     await this.executeDebugCommand({
       config: debugConfig,
       documentUri: editor.document.uri,
     });
   }
 
+  private async setEnv() {
+    // things like NODE_ENV need to be overridden this way
+    if (this.config.env) {
+      for (const [key, value] of Object.entries(this.config.env)) {
+        await this.runTerminalCommand(`export ${key}=${value}`);
+      }
+    }
+  }
+
   private async runTerminalCommand(command: string) {
-    if (this.openNativeTerminal) {
-      this.commands.push(command);
-      return;
-    }
-
     if (!this.terminal) {
-      this.terminal = vscode.window.createTerminal("it");
+      this.terminal = vscode.window.createTerminal({
+        name: "Run it",
+      });
     }
 
-    // TODO figure out focus
     this.terminal.show(true);
     await vscode.commands.executeCommand("workbench.action.terminal.clear");
     this.terminal.sendText(command);
   }
 
   private buildItCommand(filePath: string, testName?: string): string {
-    // TODO support options for grunt blah:file -F lah
     const args = this.buildItArgs(filePath, testName, true);
 
-    return `./node_modules/it/bin/it ${args.join(" ")}`;
+    const itCommand = "./node_modules/it/bin/it";
+
+    return `${itCommand} ${args.join(" ")}`;
   }
 
   private getDebugConfig(
-    cwd: string,
     filePath: string,
     currentTestName?: string
   ): vscode.DebugConfiguration {
     const config: vscode.DebugConfiguration = {
       console: "integratedTerminal",
       internalConsoleOptions: "neverOpen",
-      name: "Debug IT Tests",
-      // TODO config
+      name: "Debug it",
       program: "./node_modules/it/bin/it",
       request: "launch",
       type: "node",
-      // TODO config
-      cwd,
+      cwd: this.config.cwd,
+      env: this.config.env ?? {},
     };
 
     const standardArgs = this.buildItArgs(filePath, currentTestName, false);
@@ -176,25 +147,15 @@ export class ItRunner {
   }
 
   private async executeDebugCommand(debugCommand: DebugCommand) {
-    // prevent open of external terminal when debug command is executed
-    this.openNativeTerminal = false;
-
-    for (const command of this.commands) {
-      await this.runTerminalCommand(command);
-    }
-    this.commands = [];
-
     vscode.debug.startDebugging(undefined, debugCommand.config);
-
-    // this.previousCommand = debugCommand;
   }
 
   /**
-   *
-   * @param filePath
-   * @param testName
+   * Builds the array of arguments to pass to the it process
+   * @param filePath the full path for the file
+   * @param testName the name of the test to run (or null to run all)
    * @param quoted whether to put the test args in quotes or not, applicable between debug and run
-   * @returns
+   * @returns an array of arguments to pass to a terminal command
    */
   private buildItArgs(
     filePath: string,
@@ -203,7 +164,8 @@ export class ItRunner {
   ): string[] {
     const args: string[] = [];
 
-    args.push(filePath);
+    const relativeFilePath = path.relative(this.config.cwd, filePath);
+    args.push(relativeFilePath);
 
     if (testName) {
       args.push("-f");
@@ -219,8 +181,9 @@ export class ItRunner {
     return args;
   }
 
-  private async goToCwd(dir: string) {
-    const command = `cd ${dir}`;
+  private async goToCwd() {
+    const cwd = this.config.cwd;
+    const command = `cd ${cwd}`;
     await this.runTerminalCommand(command);
   }
 

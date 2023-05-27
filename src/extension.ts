@@ -1,13 +1,11 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { ItRunner } from "./itRunner";
-import { MyCodeLensProvider } from "./itCodeLensProvider";
+import { ItRunnerCodeLensProvider } from "./itCodeLensProvider";
+import { ItRunnerConfig } from "./itRunnerConfig";
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  const itRunner = new ItRunner();
+  const itConfig = new ItRunnerConfig();
+  const itRunner = new ItRunner(itConfig);
 
   const runFile = vscode.commands.registerCommand(
     "it-runner.runItFile",
@@ -33,7 +31,6 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  // This line of code will only be executed once when your extension is activated
   console.log('"it-runner" is now active!');
 
   context.subscriptions.push(runFile);
@@ -44,17 +41,16 @@ export function activate(context: vscode.ExtensionContext) {
   const docSelectors: vscode.DocumentFilter[] = [
     {
       // TODO config
-      pattern: "**/*.{test,spec}.{js,jsx,ts,tsx}",
+      pattern: "**/*.{test,spec}.{js,ts}",
     },
   ];
 
   let codeLensProviderDisposable = vscode.languages.registerCodeLensProvider(
     docSelectors,
-    new MyCodeLensProvider()
+    new ItRunnerCodeLensProvider()
   );
 
   context.subscriptions.push(codeLensProviderDisposable);
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {}
