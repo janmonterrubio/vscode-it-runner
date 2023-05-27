@@ -14,7 +14,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}"
       ],
       "outFiles": ["${workspaceFolder}/out/**/*.js"],
-      "preLaunchTask": "${defaultBuildTask}"
+      "preLaunchTask": "npm: webpack"
     },
     {
       "name": "Run Extension with it-sample",
@@ -26,7 +26,7 @@
         "${workspaceFolder}/it-sample"
       ],
       "outFiles": ["${workspaceFolder}/out/**/*.js"],
-      "preLaunchTask": "${defaultBuildTask}"
+      "preLaunchTask": "npm: build"
     },
     {
       "name": "Extension Tests",

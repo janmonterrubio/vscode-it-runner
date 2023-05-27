@@ -169,6 +169,7 @@ export class ItRunner {
 
     if (testName) {
       args.push("-f");
+      // TODO revisit if we can always quote things
       if (quoted) {
         args.push(`"${testName}"`);
       } else {
