@@ -1,8 +1,12 @@
 {
-  "name": "it-runner",
-  "displayName": "it-runner",
+  "name": "vscode-it-runner",
+  "displayName": "vscode-it-runner",
   "description": "Runs tests written with the it framework",
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/janmonterrubio/vscode-it-runner"
+  },
   "engines": {
     "vscode": "^1.78.0"
   },
