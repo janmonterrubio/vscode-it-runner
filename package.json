@@ -2,7 +2,7 @@
   "name": "vscode-it-runner",
   "displayName": "it Runner",
   "description": "Runs tests written with the it framework",
-  "version": "0.2.0g",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/janmonterrubio/vscode-it-runner"
