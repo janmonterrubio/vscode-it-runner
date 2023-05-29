@@ -5,7 +5,7 @@ import {
   Range,
   TextDocument,
 } from "vscode";
-import { TestCollector, TestNode, parse, walkTree } from "./itTestParser";
+import { TestCollector, TestNode, findTests } from "./itTestParser";
 
 export type CodeLensOption = "run" | "debug";
 
@@ -13,7 +13,7 @@ export class ItRunnerCodeLensProvider implements CodeLensProvider {
   async provideCodeLenses(document: TextDocument): Promise<CodeLens[]> {
     let topOfDocument = new Range(0, 0, 0, 0);
 
-    const foundTests = walkTree(parse(document.getText()));
+    const foundTests = findTests(document.getText());
 
     // no tests
     if (foundTests.children.length < 1) {
