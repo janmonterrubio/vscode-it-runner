@@ -137,6 +137,37 @@ describe("itTestParser", () => {
         expect(shouldLocation?.end.column).toBe(5);
       });
 
+
+      test("ignores globally required library", () => {
+        const content = readFileSync(
+          resolve(__dirname, "scenarios/global_require.js"),
+          "utf-8"
+        );
+        const collected = findTests(content);
+
+        const describeNode = collected.children[0];
+        expect(describeNode.testLiteral).toBe("scenarioDescription");
+        expect(describeNode.parts).toEqual(["scenarioDescription"]);
+        expect(describeNode.testType).toBe(TestType.DESCRIBE);
+
+        const describeLocation = describeNode.location;
+        expect(describeLocation?.start.line).toBe(5);
+        expect(describeLocation?.start.column).toBe(0);
+        expect(describeLocation?.end.line).toBe(9);
+        expect(describeLocation?.end.column).toBe(3);
+
+        const shouldNode = describeNode.children[0];
+        expect(shouldNode.testLiteral).toBe("assert that isFunction");
+        expect(shouldNode.parts).toEqual(["scenarioDescription", "should assert that isFunction"]);
+        expect(shouldNode.testType).toBe(TestType.SHOULD);
+       
+        const shouldLocation = shouldNode.location;
+        expect(shouldLocation?.start.line).toBe(6);
+        expect(shouldLocation?.start.column).toBe(2);
+        expect(shouldLocation?.end.line).toBe(8);
+        expect(shouldLocation?.end.column).toBe(5);
+      });
+
     });
 
   });

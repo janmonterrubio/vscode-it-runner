@@ -99,48 +99,54 @@ function walkTree(parseTree: acorn.Node) {
       const expressionStatement: any = node;
       const expression = expressionStatement.expression;
 
+      // todo update this to early returns cause theres 2 much nesting now
+
       if (expression.type === "CallExpression") {
         const callee = expression.callee;
-        const called = callee.property.name;
 
-        // it.describe 
-        const targetObjName = callee.object.name;
-        // is it the it library
-        if(targetObjName === state.itLibraryName)
+        if(callee.property)
         {
-          if (called === "describe") {
-            const describeLiteral = expression.arguments[0];
-            const describeValue = describeLiteral.value;
-  
-            const testNode: TestNode = {
-              testLiteral: describeValue,
-              testType: TestType.DESCRIBE,
-              location: node.loc,
-              children: [],
-              parts: [...state.parts, describeValue],
-              itLibraryName: state.itLibraryName
-            };
-            state.children.push(testNode);
-  
-            c(expression.arguments[1], testNode);
+          const called = callee.property.name;
+
+          // it.describe 
+          const targetObjName = callee.object.name;
+          // is it the it library
+          if(targetObjName === state.itLibraryName)
+          {
+            if (called === "describe") {
+              const describeLiteral = expression.arguments[0];
+              const describeValue = describeLiteral.value;
+    
+              const testNode: TestNode = {
+                testLiteral: describeValue,
+                testType: TestType.DESCRIBE,
+                location: node.loc,
+                children: [],
+                parts: [...state.parts, describeValue],
+                itLibraryName: state.itLibraryName
+              };
+              state.children.push(testNode);
+    
+              c(expression.arguments[1], testNode);
+            }
+    
+            if (called === "should") {
+              const shouldLiteral = expression.arguments[0];
+              const shouldValue = shouldLiteral.value;
+              const shouldPart = "should " + shouldValue;
+    
+              const testNode: TestNode = {
+                testLiteral: shouldValue,
+                testType: TestType.SHOULD,
+                location: node.loc,
+                children: [],
+                parts: [...state.parts, shouldPart],
+                itLibraryName: state.itLibraryName
+              };
+              state.children.push(testNode);
+            }
           }
-  
-          if (called === "should") {
-            const shouldLiteral = expression.arguments[0];
-            const shouldValue = shouldLiteral.value;
-            const shouldPart = "should " + shouldValue;
-  
-            const testNode: TestNode = {
-              testLiteral: shouldValue,
-              testType: TestType.SHOULD,
-              location: node.loc,
-              children: [],
-              parts: [...state.parts, shouldPart],
-              itLibraryName: state.itLibraryName
-            };
-            state.children.push(testNode);
-          }
-        }        
+        }
       }
     },
   });
