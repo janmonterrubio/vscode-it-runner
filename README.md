@@ -7,8 +7,11 @@ An extension that runs tests written with [`doug-martin/it`](https://github.com/
 Run & Debug your `it` Tests from
 
 - Context-Menu
+![](./imgs/run_it_context_menu.gif)
 - CodeLens
+![](./imgs/run_it_codelens.gif)
 - Command Palette
+![](./imgs/run_it_command_palette.gif)
 
 
 ## Requirements

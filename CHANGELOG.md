@@ -6,7 +6,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [0.2.0]
 
-- Exclude false positives
+- Exclude false positivesg
 
 ## [0.1.1]
 
