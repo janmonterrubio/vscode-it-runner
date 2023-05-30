@@ -4,6 +4,10 @@ All notable changes to the "it-runner" extension will be documented in this file
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.2.2]
+
+- Prevent crashing on a variable declaration without initializer.
+
 ## [0.2.1]
 
 - Prevent crashing on a globally required import

@@ -22,7 +22,7 @@ export type TestNode = {
   children: TestNode[];
 
   parts: string[];
-  
+
   /**
    * name given to the it library in the source file associated to this test
    */
@@ -64,6 +64,11 @@ function walkTree(parseTree: acorn.Node) {
         const variableDeclarator: any = node;
         const initializer = variableDeclarator.init;
 
+        // var declaration without init, skip
+        if (!initializer) {
+          return;
+        }
+
         if (initializer.type === "CallExpression") {
           const callee = initializer.callee;
           const called = callee.name;
@@ -86,7 +91,7 @@ function walkTree(parseTree: acorn.Node) {
   var testCollector = {
     children: [],
     parts: [],
-    itLibraryName: itFinder.libraryName
+    itLibraryName: itFinder.libraryName,
   } as TestCollector;
 
   const itLibraryName = itFinder.libraryName;
@@ -104,44 +109,42 @@ function walkTree(parseTree: acorn.Node) {
       if (expression.type === "CallExpression") {
         const callee = expression.callee;
 
-        if(callee.property)
-        {
+        if (callee.property) {
           const called = callee.property.name;
 
-          // it.describe 
+          // it.describe
           const targetObjName = callee.object.name;
           // is it the it library
-          if(targetObjName === state.itLibraryName)
-          {
+          if (targetObjName === state.itLibraryName) {
             if (called === "describe") {
               const describeLiteral = expression.arguments[0];
               const describeValue = describeLiteral.value;
-    
+
               const testNode: TestNode = {
                 testLiteral: describeValue,
                 testType: TestType.DESCRIBE,
                 location: node.loc,
                 children: [],
                 parts: [...state.parts, describeValue],
-                itLibraryName: state.itLibraryName
+                itLibraryName: state.itLibraryName,
               };
               state.children.push(testNode);
-    
+
               c(expression.arguments[1], testNode);
             }
-    
+
             if (called === "should") {
               const shouldLiteral = expression.arguments[0];
               const shouldValue = shouldLiteral.value;
               const shouldPart = "should " + shouldValue;
-    
+
               const testNode: TestNode = {
                 testLiteral: shouldValue,
                 testType: TestType.SHOULD,
                 location: node.loc,
                 children: [],
                 parts: [...state.parts, shouldPart],
-                itLibraryName: state.itLibraryName
+                itLibraryName: state.itLibraryName,
               };
               state.children.push(testNode);
             }

@@ -168,6 +168,22 @@ describe("itTestParser", () => {
         expect(shouldLocation?.end.column).toBe(5);
       });
 
+      test("ignores unassigned vars", () => {
+        const content = readFileSync(
+          resolve(__dirname, "scenarios/with_let.js"),
+          "utf-8"
+        );
+        const collected = findTests(content);
+
+        const describeNode = collected.children[0];
+        expect(describeNode.testLiteral).toBe("scenarioDescription");
+        expect(describeNode.parts).toEqual(["scenarioDescription"]);
+
+        const shouldNode = describeNode.children[0];
+        expect(shouldNode.testLiteral).toBe("assert that isFunction");
+        expect(shouldNode.parts).toEqual(["scenarioDescription", "should assert that isFunction"]);
+      });
+
     });
 
   });
